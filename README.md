@@ -184,10 +184,6 @@ curl -X POST http://localhost:3000/api/subscriptions \
 }
 ```
 
-## Scheduled Tasks
-
-- **Monthly Quota Reset**: Runs on 1st of each month at midnight
-
 ## Scripts
 
 ```bash
