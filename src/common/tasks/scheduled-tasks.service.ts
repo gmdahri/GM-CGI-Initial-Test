@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { UsersRepository } from '../../users/infrastructure/repositories/users.repository';
+import { SubscriptionsService } from '../../subscriptions/application/services/subscriptions.service';
 
 @Injectable()
 export class ScheduledTasksService {
   private readonly logger = new Logger(ScheduledTasksService.name);
 
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly subscriptionsService: SubscriptionsService,
+  ) {}
 
   // Reset free quota on the 1st of each month at midnight
   @Cron('0 0 1 * *')
@@ -17,6 +21,20 @@ export class ScheduledTasksService {
       this.logger.log('Monthly free quota reset completed successfully');
     } catch (error) {
       this.logger.error('Failed to reset monthly free quota', error);
+    }
+  }
+
+  // Process subscription renewals every hour
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleSubscriptionRenewals() {
+    this.logger.log('Processing subscription renewals...');
+    try {
+      const result = await this.subscriptionsService.processRenewals();
+      this.logger.log(
+        `Subscription renewals processed: ${result.renewed} renewed, ${result.failed} failed`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to process subscription renewals', error);
     }
   }
 }

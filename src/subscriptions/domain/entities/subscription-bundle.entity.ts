@@ -43,6 +43,12 @@ export class SubscriptionBundle {
   @Column({ type: 'timestamp' })
   endDate!: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  renewalDate!: Date | null;
+
+  @Column({ default: true })
+  autoRenew!: boolean;
+
   @Column({ default: true })
   isActive!: boolean;
 

@@ -49,7 +49,9 @@ src/
   - Pro: 100 messages - $29.99/month
   - Enterprise: Unlimited - $99.99/month
 - **Billing Cycles**: Monthly or Yearly (20% discount)
-- Cancellation preserves usage until billing cycle ends
+- **Auto-renewal**: Toggle on/off per subscription
+- **Simulated Billing**: 10% random payment failure rate
+- **Cancellation**: Preserves usage until billing cycle ends
 
 ## Quick Start
 
@@ -115,6 +117,7 @@ NODE_ENV=development
 | GET | `/api/subscriptions` | List all subscriptions |
 | GET | `/api/subscriptions/active` | List active subscriptions |
 | GET | `/api/subscriptions/:id` | Get subscription by ID |
+| PATCH | `/api/subscriptions/:id` | Toggle auto-renew |
 | DELETE | `/api/subscriptions/:id` | Cancel subscription |
 
 ## API Examples
@@ -146,7 +149,15 @@ curl -X POST http://localhost:3000/api/chat \
 curl -X POST http://localhost:3000/api/subscriptions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-token>" \
-  -d '{"tier": "PRO", "billingCycle": "MONTHLY"}'
+  -d '{"tier": "PRO", "billingCycle": "MONTHLY", "autoRenew": true}'
+```
+
+### Toggle Auto-Renew
+```bash
+curl -X PATCH http://localhost:3000/api/subscriptions/<id> \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{"autoRenew": false}'
 ```
 
 ## Response Format
@@ -183,6 +194,11 @@ curl -X POST http://localhost:3000/api/subscriptions \
   "errorCode": "QUOTA_EXCEEDED"
 }
 ```
+
+## Scheduled Tasks
+
+- **Monthly Quota Reset**: Runs on 1st of each month at midnight
+- **Subscription Renewals**: Runs every hour (10% random payment failure)
 
 ## Scripts
 

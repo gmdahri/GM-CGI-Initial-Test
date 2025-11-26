@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -13,6 +14,7 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { User } from '../../../users/domain/entities/user.entity';
 import { SubscriptionsService } from '../../application/services/subscriptions.service';
 import { CreateSubscriptionDto } from '../../application/dto/create-subscription.dto';
+import { UpdateSubscriptionDto } from '../../application/dto/update-subscription.dto';
 import { ApiResponse, successResponse } from '../../../common/responses/api-response';
 import { SubscriptionBundle } from '../../domain/entities/subscription-bundle.entity';
 
@@ -49,6 +51,16 @@ export class SubscriptionsController {
   ): Promise<ApiResponse<SubscriptionBundle>> {
     const bundle = await this.subscriptionsService.findById(id, user.id);
     return successResponse(bundle, 'Subscription bundle retrieved successfully');
+  }
+
+  @Patch(':id')
+  async toggleAutoRenew(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSubscriptionDto,
+  ): Promise<ApiResponse<SubscriptionBundle>> {
+    const bundle = await this.subscriptionsService.toggleAutoRenew(id, user.id, dto);
+    return successResponse(bundle, 'Auto-renew toggled successfully');
   }
 
   @Delete(':id')

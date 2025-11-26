@@ -109,7 +109,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tier\": \"BASIC\",\n  \"billingCycle\": \"MONTHLY\"\n}"
+              "raw": "{\n  \"tier\": \"BASIC\",\n  \"billingCycle\": \"MONTHLY\",\n  \"autoRenew\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/subscriptions",
@@ -134,7 +134,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tier\": \"PRO\",\n  \"billingCycle\": \"YEARLY\"\n}"
+              "raw": "{\n  \"tier\": \"PRO\",\n  \"billingCycle\": \"YEARLY\",\n  \"autoRenew\": false\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/subscriptions",
@@ -159,7 +159,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tier\": \"ENTERPRISE\",\n  \"billingCycle\": \"MONTHLY\"\n}"
+              "raw": "{\n  \"tier\": \"ENTERPRISE\",\n  \"billingCycle\": \"MONTHLY\",\n  \"autoRenew\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/subscriptions",
@@ -212,6 +212,37 @@
                 "value": "Bearer {{token}}"
               }
             ],
+            "url": {
+              "raw": "{{baseUrl}}/subscriptions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["subscriptions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "subscription-uuid-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Toggle Auto-Renew",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autoRenew\": false\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/subscriptions/:id",
               "host": ["{{baseUrl}}"],

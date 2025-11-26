@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { SubscriptionsRepository } from '../../infrastructure/repositories/subscriptions.repository';
 import { SubscriptionBundle } from '../../domain/entities/subscription-bundle.entity';
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
+import { UpdateSubscriptionDto } from '../dto/update-subscription.dto';
 import { BillingCycle, TIER_CONFIG } from '../../domain/enums/subscription-tier.enum';
 
 @Injectable()
@@ -35,6 +36,8 @@ export class SubscriptionsService {
       price,
       startDate: now,
       endDate,
+      renewalDate: endDate,
+      autoRenew: dto.autoRenew ?? true,
       isActive: true,
       isCancelled: false,
     });
@@ -58,6 +61,24 @@ export class SubscriptionsService {
     return bundle;
   }
 
+  async toggleAutoRenew(
+    id: string,
+    userId: string,
+    dto: UpdateSubscriptionDto,
+  ): Promise<SubscriptionBundle> {
+    const bundle = await this.findById(id, userId);
+
+    if (bundle.isCancelled) {
+      throw new BadRequestException('Cannot modify cancelled subscription');
+    }
+
+    const updated = await this.subscriptionsRepository.update(id, {
+      autoRenew: dto.autoRenew,
+    });
+
+    return updated!;
+  }
+
   async cancel(id: string, userId: string): Promise<SubscriptionBundle> {
     const bundle = await this.findById(id, userId);
 
@@ -67,6 +88,7 @@ export class SubscriptionsService {
 
     const updated = await this.subscriptionsRepository.update(id, {
       isCancelled: true,
+      autoRenew: false,
       // Keep active until end of current billing cycle
     });
 
@@ -79,5 +101,44 @@ export class SubscriptionsService {
 
   async deductFromBundle(bundleId: string): Promise<void> {
     await this.subscriptionsRepository.deductMessage(bundleId);
+  }
+
+  async processRenewals(): Promise<{ renewed: number; failed: number }> {
+    const subscriptions = await this.subscriptionsRepository.findSubscriptionsDueForRenewal();
+    let renewed = 0;
+    let failed = 0;
+
+    for (const subscription of subscriptions) {
+      // Simulate payment - 10% chance of failure
+      const paymentSuccess = Math.random() > 0.1;
+
+      if (paymentSuccess) {
+        const now = new Date();
+        const newEndDate = new Date(now);
+
+        if (subscription.billingCycle === BillingCycle.MONTHLY) {
+          newEndDate.setMonth(newEndDate.getMonth() + 1);
+        } else {
+          newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+        }
+
+        await this.subscriptionsRepository.update(subscription.id, {
+          startDate: now,
+          endDate: newEndDate,
+          renewalDate: newEndDate,
+          remainingMessages: subscription.maxMessages,
+        });
+        renewed++;
+      } else {
+        // Payment failed - mark subscription inactive
+        await this.subscriptionsRepository.update(subscription.id, {
+          isActive: false,
+          autoRenew: false,
+        });
+        failed++;
+      }
+    }
+
+    return { renewed, failed };
   }
 }

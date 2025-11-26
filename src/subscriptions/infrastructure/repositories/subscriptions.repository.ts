@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, LessThanOrEqual, MoreThan } from 'typeorm';
 import { SubscriptionBundle } from '../../domain/entities/subscription-bundle.entity';
 
 @Injectable()
@@ -59,6 +59,18 @@ export class SubscriptionsRepository {
         endDate: MoreThan(now),
       },
       order: { remainingMessages: 'DESC' },
+    });
+  }
+
+  async findSubscriptionsDueForRenewal(): Promise<SubscriptionBundle[]> {
+    const now = new Date();
+    return this.repository.find({
+      where: {
+        autoRenew: true,
+        isActive: true,
+        isCancelled: false,
+        renewalDate: LessThanOrEqual(now),
+      },
     });
   }
 

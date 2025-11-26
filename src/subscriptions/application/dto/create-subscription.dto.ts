@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsBoolean, IsOptional } from 'class-validator';
 import { SubscriptionTier, BillingCycle } from '../../domain/enums/subscription-tier.enum';
 
 export class CreateSubscriptionDto {
@@ -7,4 +7,8 @@ export class CreateSubscriptionDto {
 
   @IsEnum(BillingCycle)
   billingCycle!: BillingCycle;
+
+  @IsBoolean()
+  @IsOptional()
+  autoRenew?: boolean = true;
 }
